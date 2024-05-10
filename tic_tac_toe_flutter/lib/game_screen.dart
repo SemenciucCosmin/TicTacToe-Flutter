@@ -195,6 +195,8 @@ class GameState extends State<GameScreen> {
         gridMap[Button.middleMiddle], gridMap[Button.bottomLeft]);
 
     Sign winningSign = Sign.none;
+    bool hasUnmarkedCells =
+        gridMap.values.where((sign) => sign == Sign.none).isNotEmpty;
 
     if (hasFirstRow || hasFirstColumn || hasMainDiagonal) {
       winningSign = gridMap[Button.topLeft] ?? Sign.none;
@@ -202,8 +204,6 @@ class GameState extends State<GameScreen> {
       winningSign = gridMap[Button.middleMiddle] ?? Sign.none;
     } else if (hasThirdRow || hasThirdColumn) {
       winningSign = gridMap[Button.bottomRight] ?? Sign.none;
-    } else {
-      return;
     }
 
     if (winningSign == player1.sign) {
@@ -211,9 +211,14 @@ class GameState extends State<GameScreen> {
         title = "Player 1 wins!";
         gameHasWinner = true;
       });
-    } else {
+    } else if (winningSign == player2.sign) {
       setState(() {
         title = "Player 2 wins!";
+        gameHasWinner = true;
+      });
+    } else if (!hasUnmarkedCells) {
+      setState(() {
+        title = "Draw!";
         gameHasWinner = true;
       });
     }
