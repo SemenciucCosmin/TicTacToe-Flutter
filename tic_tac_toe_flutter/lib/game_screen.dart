@@ -189,6 +189,7 @@ class GameState extends State<GameScreen> {
           markCell(cell, player2.sign);
         }
         changePlayersTurns();
+        setupGameStatus(getGameStatus(gridMap));
         break;
 
       case GameMode.onePlayerWithAiEasy:
