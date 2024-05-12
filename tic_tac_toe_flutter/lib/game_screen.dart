@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tic_tac_toe_flutter/game_status.dart';
 import 'package:tic_tac_toe_flutter/player.dart';
 import 'package:tic_tac_toe_flutter/player_type.dart';
 import 'package:tic_tac_toe_flutter/sign.dart';
@@ -18,13 +19,14 @@ class GameScreen extends StatefulWidget {
 class GameState extends State<GameScreen> {
   late Player player1;
   late Player player2;
-  bool gameHasWinner = false;
-  String title = "Player 1 turn: X";
+  GameStatus gameStatus = Ongoing();
+  String title = "";
   Map<Button, Sign> gridMap = {};
 
   @override
   void initState() {
     super.initState();
+    setupGameStatus(gameStatus);
     setupPlayers();
     setupGridMap();
   }
@@ -125,7 +127,7 @@ class GameState extends State<GameScreen> {
               ],
             ),
             Visibility(
-              visible: gameHasWinner, // bool
+              visible: gameStatus is! Ongoing, // bool
               child: ElevatedButton(
                 child: const Text("Rematch"),
                 onPressed: () {
@@ -140,7 +142,7 @@ class GameState extends State<GameScreen> {
   }
 
   void onButtonClick(Button button) {
-    if (gameHasWinner) return;
+    if (gameStatus is Win) return;
     if (gridMap[button] != Sign.none) return;
 
     if (player1.hasTurn) {
@@ -158,7 +160,8 @@ class GameState extends State<GameScreen> {
         gridMap[button] = player2.sign;
       });
     }
-    checkForWin();
+
+    setupGameStatus(getGameStatus(gridMap));
   }
 
   Button getAiEasyMove() {
@@ -169,58 +172,50 @@ class GameState extends State<GameScreen> {
     return Button.topLeft;
   }
 
-  void checkForWin() {
-    bool hasFirstRow = areEqual(gridMap[Button.topLeft],
-        gridMap[Button.topMiddle], gridMap[Button.topRight]);
+  GameStatus getGameStatus(Map<Button, Sign> map) {
+    bool hasFirstRow = areEqual(
+        map[Button.topLeft], map[Button.topMiddle], map[Button.topRight]);
 
-    bool hasSecondRow = areEqual(gridMap[Button.middleLeft],
-        gridMap[Button.middleMiddle], gridMap[Button.middleRight]);
+    bool hasSecondRow = areEqual(map[Button.middleLeft],
+        map[Button.middleMiddle], map[Button.middleRight]);
 
-    bool hasThirdRow = areEqual(gridMap[Button.bottomLeft],
-        gridMap[Button.bottomMiddle], gridMap[Button.bottomRight]);
+    bool hasThirdRow = areEqual(map[Button.bottomLeft],
+        map[Button.bottomMiddle], map[Button.bottomRight]);
 
-    bool hasFirstColumn = areEqual(gridMap[Button.topLeft],
-        gridMap[Button.middleLeft], gridMap[Button.bottomLeft]);
+    bool hasFirstColumn = areEqual(
+        map[Button.topLeft], map[Button.middleLeft], map[Button.bottomLeft]);
 
-    bool hasSecondColumn = areEqual(gridMap[Button.topMiddle],
-        gridMap[Button.middleMiddle], gridMap[Button.bottomMiddle]);
+    bool hasSecondColumn = areEqual(map[Button.topMiddle],
+        map[Button.middleMiddle], map[Button.bottomMiddle]);
 
-    bool hasThirdColumn = areEqual(gridMap[Button.topRight],
-        gridMap[Button.middleRight], gridMap[Button.bottomRight]);
+    bool hasThirdColumn = areEqual(
+        map[Button.topRight], map[Button.middleRight], map[Button.bottomRight]);
 
-    bool hasMainDiagonal = areEqual(gridMap[Button.topLeft],
-        gridMap[Button.middleMiddle], gridMap[Button.bottomRight]);
+    bool hasMainDiagonal = areEqual(
+        map[Button.topLeft], map[Button.middleMiddle], map[Button.bottomRight]);
 
-    bool hasSecondaryDiagonal = areEqual(gridMap[Button.topRight],
-        gridMap[Button.middleMiddle], gridMap[Button.bottomLeft]);
+    bool hasSecondaryDiagonal = areEqual(
+        map[Button.topRight], map[Button.middleMiddle], map[Button.bottomLeft]);
+
+    bool hasUnmarkedCells =
+        map.values.where((sign) => sign == Sign.none).isNotEmpty;
 
     Sign winningSign = Sign.none;
-    bool hasUnmarkedCells =
-        gridMap.values.where((sign) => sign == Sign.none).isNotEmpty;
 
     if (hasFirstRow || hasFirstColumn || hasMainDiagonal) {
-      winningSign = gridMap[Button.topLeft] ?? Sign.none;
+      winningSign = map[Button.topLeft] ?? Sign.none;
     } else if (hasSecondRow || hasSecondColumn || hasSecondaryDiagonal) {
-      winningSign = gridMap[Button.middleMiddle] ?? Sign.none;
+      winningSign = map[Button.middleMiddle] ?? Sign.none;
     } else if (hasThirdRow || hasThirdColumn) {
-      winningSign = gridMap[Button.bottomRight] ?? Sign.none;
+      winningSign = map[Button.bottomRight] ?? Sign.none;
     }
 
-    if (winningSign == player1.sign) {
-      setState(() {
-        title = "Player 1 wins!";
-        gameHasWinner = true;
-      });
-    } else if (winningSign == player2.sign) {
-      setState(() {
-        title = "Player 2 wins!";
-        gameHasWinner = true;
-      });
+    if (winningSign != Sign.none) {
+      return Win(winningSign);
     } else if (!hasUnmarkedCells) {
-      setState(() {
-        title = "Draw!";
-        gameHasWinner = true;
-      });
+      return Draw();
+    } else {
+      return Ongoing();
     }
   }
 
@@ -228,8 +223,33 @@ class GameState extends State<GameScreen> {
     setupPlayers();
     setupGridMap();
     setState(() {
-      gameHasWinner = false;
-      title = "Player 1 turn: X";
+      gameStatus = Ongoing();
+    });
+  }
+
+  void setupGameStatus(GameStatus status) {
+    setState(() {
+      gameStatus = status;
+
+      switch (status) {
+        case Draw():
+          title = "Draw!";
+          break;
+        case Ongoing():
+          if (player1.hasTurn) {
+            title = "Player 1 turn: ${player1.sign}";
+          } else {
+            title = "Player 1 turn: ${player2.sign}";
+          }
+          break;
+        case Win():
+          if (status.playerSign == player1.sign) {
+            title = "Player 1 won!";
+          } else {
+            title = "Player 2 won!";
+          }
+          break;
+      }
     });
   }
 
