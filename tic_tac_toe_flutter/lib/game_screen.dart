@@ -49,6 +49,7 @@ class GameState extends State<GameScreen> {
               title,
               style: const TextStyle(fontSize: 20),
             ),
+            const SizedBox(height: 16),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
@@ -62,6 +63,7 @@ class GameState extends State<GameScreen> {
                           onButtonClick(Cell.topLeft);
                         },
                       ),
+                      const SizedBox(width: 16),
                       ElevatedButton(
                         child: Text(
                             gridMap[Cell.topMiddle]?.text ?? Sign.none.text),
@@ -69,6 +71,7 @@ class GameState extends State<GameScreen> {
                           onButtonClick(Cell.topMiddle);
                         },
                       ),
+                      const SizedBox(width: 16),
                       ElevatedButton(
                         child: Text(
                             gridMap[Cell.topRight]?.text ?? Sign.none.text),
@@ -77,6 +80,7 @@ class GameState extends State<GameScreen> {
                         },
                       ),
                     ]),
+                const SizedBox(width: 16),
                 Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
@@ -87,6 +91,7 @@ class GameState extends State<GameScreen> {
                           onButtonClick(Cell.middleLeft);
                         },
                       ),
+                      const SizedBox(width: 16),
                       ElevatedButton(
                         child: Text(
                             gridMap[Cell.middleMiddle]?.text ?? Sign.none.text),
@@ -94,6 +99,7 @@ class GameState extends State<GameScreen> {
                           onButtonClick(Cell.middleMiddle);
                         },
                       ),
+                      const SizedBox(width: 16),
                       ElevatedButton(
                         child: Text(
                             gridMap[Cell.middleRight]?.text ?? Sign.none.text),
@@ -102,6 +108,7 @@ class GameState extends State<GameScreen> {
                         },
                       ),
                     ]),
+                const SizedBox(width: 16),
                 Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
@@ -112,6 +119,7 @@ class GameState extends State<GameScreen> {
                           onButtonClick(Cell.bottomLeft);
                         },
                       ),
+                      const SizedBox(width: 16),
                       ElevatedButton(
                         child: Text(
                             gridMap[Cell.bottomMiddle]?.text ?? Sign.none.text),
@@ -119,6 +127,7 @@ class GameState extends State<GameScreen> {
                           onButtonClick(Cell.bottomMiddle);
                         },
                       ),
+                      const SizedBox(width: 16),
                       ElevatedButton(
                         child: Text(
                             gridMap[Cell.bottomRight]?.text ?? Sign.none.text),
@@ -129,6 +138,30 @@ class GameState extends State<GameScreen> {
                     ]),
               ],
             ),
+            const SizedBox(height: 16),
+            Visibility(
+              visible: widget.gameMode != GameMode.twoPlayers &&
+                  player2.hasTurn && gameStatus is Ongoing, // bool
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text("Computing AI move"),
+                  SizedBox(width: 16),
+                  SizedBox(
+                    height: 15.0,
+                    width: 15.0,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
             Visibility(
               visible: gameStatus is! Ongoing, // bool
               child: ElevatedButton(

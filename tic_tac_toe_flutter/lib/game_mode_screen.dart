@@ -21,18 +21,21 @@ class GameModeScreen extends StatelessWidget {
               "Choose the game mode",
               style: TextStyle(fontSize: 20),
             ),
+            const SizedBox(height: 16),
             ElevatedButton(
               child: Text(GameMode.twoPlayers.title),
               onPressed: () {
                 _onGameModeSelected(context, GameMode.twoPlayers);
               },
             ),
+            const SizedBox(height: 16),
             ElevatedButton(
               child: Text(GameMode.onePlayerWithAiEasy.title),
               onPressed: () {
                 _onGameModeSelected(context, GameMode.onePlayerWithAiEasy);
               },
             ),
+            const SizedBox(height: 16),
             ElevatedButton(
               child: Text(GameMode.onePlayerWithAiHard.title),
               onPressed: () {
