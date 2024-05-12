@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -28,9 +29,9 @@ class GameState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    setupGameStatus(gameStatus);
     setupPlayers();
     setupGridMap();
+    setupGameStatus(gameStatus);
   }
 
   @override
@@ -144,26 +145,57 @@ class GameState extends State<GameScreen> {
   }
 
   void onButtonClick(Cell cell) {
-    if (gameStatus is Win) return;
+    if (gameStatus is! Ongoing) return;
     if (gridMap[cell] != Sign.none) return;
 
-    if (player1.hasTurn) {
-      setState(() {
-        player1.hasTurn = false;
-        player2.hasTurn = true;
-        title = "Player 2 turn: 0";
-        gridMap[cell] = player1.sign;
-      });
-    } else {
-      setState(() {
-        player1.hasTurn = true;
-        player2.hasTurn = false;
-        title = "Player 1 turn: X";
-        gridMap[cell] = player2.sign;
-      });
-    }
+    switch (widget.gameMode) {
+      case GameMode.twoPlayers:
+        if (player1.hasTurn) {
+          markCell(cell, player1.sign);
+        } else {
+          markCell(cell, player2.sign);
+        }
+        changePlayersTurns();
+        break;
 
-    setupGameStatus(getGameStatus(gridMap));
+      case GameMode.onePlayerWithAiEasy:
+        // Make sure user does not click a cell while the AI is computing a move
+        if (player1.hasTurn) {
+          markCell(cell, player1.sign);
+          changePlayersTurns();
+          setupGameStatus(getGameStatus(gridMap));
+
+          // Prevent th AI from marking its move if the user has already won
+          if (getGameStatus(gridMap) is! Ongoing) return;
+
+          // Mark the AI-easy move after a two seconds delay to
+          // simulate computing algorithm
+          Future.delayed(const Duration(seconds: 2), () {
+            markCell(getAiEasyMove(), player2.sign);
+            changePlayersTurns();
+            setupGameStatus(getGameStatus(gridMap));
+          });
+        }
+        break;
+
+      case GameMode.onePlayerWithAiHard:
+        // Make sure user does not click a cell while the AI is computing a move
+        if (player1.hasTurn) {
+          markCell(cell, player1.sign);
+          changePlayersTurns();
+          setupGameStatus(getGameStatus(gridMap));
+
+          // Prevent th AI from marking its move if the user has already won
+          if (getGameStatus(gridMap) is! Ongoing) return;
+
+          Future.delayed(const Duration(seconds: 2), () {
+            markCell(getAiHardMove(), player2.sign);
+            changePlayersTurns();
+            setupGameStatus(getGameStatus(gridMap));
+          });
+        }
+        break;
+    }
   }
 
   Cell getAiEasyMove() {
@@ -173,7 +205,7 @@ class GameState extends State<GameScreen> {
     return emptyCells[random.nextInt(emptyCells.length)];
   }
 
-  Cell getAiEasyHard() {
+  Cell getAiHardMove() {
     return Cell.topLeft;
   }
 
@@ -224,6 +256,19 @@ class GameState extends State<GameScreen> {
     }
   }
 
+  void changePlayersTurns() {
+    setState(() {
+      player1.hasTurn = !player1.hasTurn;
+      player2.hasTurn = !player2.hasTurn;
+    });
+  }
+
+  void markCell(Cell cell, Sign sign) {
+    setState(() {
+      gridMap[cell] = sign;
+    });
+  }
+
   void rematch() {
     setupPlayers();
     setupGridMap();
@@ -242,16 +287,16 @@ class GameState extends State<GameScreen> {
           break;
         case Ongoing():
           if (player1.hasTurn) {
-            title = "Player 1 turn: ${player1.sign}";
+            title = "Player 1 turn: ${player1.sign.text}";
           } else {
-            title = "Player 1 turn: ${player2.sign}";
+            title = "Player 2 turn: ${player2.sign.text}";
           }
           break;
         case Win():
           if (status.playerSign == player1.sign) {
-            title = "Player 1 won!";
+            title = "Player 1 wins!";
           } else {
-            title = "Player 2 won!";
+            title = "Player 2 wins!";
           }
           break;
       }
