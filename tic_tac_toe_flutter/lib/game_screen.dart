@@ -1,10 +1,12 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:tic_tac_toe_flutter/game_status.dart';
 import 'package:tic_tac_toe_flutter/player.dart';
 import 'package:tic_tac_toe_flutter/player_type.dart';
 import 'package:tic_tac_toe_flutter/sign.dart';
 
-import 'button.dart';
+import 'cell.dart';
 import 'game_mode.dart';
 
 class GameScreen extends StatefulWidget {
@@ -21,7 +23,7 @@ class GameState extends State<GameScreen> {
   late Player player2;
   GameStatus gameStatus = Ongoing();
   String title = "";
-  Map<Button, Sign> gridMap = {};
+  Map<Cell, Sign> gridMap = {};
 
   @override
   void initState() {
@@ -53,24 +55,24 @@ class GameState extends State<GameScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       ElevatedButton(
-                        child: Text(
-                            gridMap[Button.topLeft]?.text ?? Sign.none.text),
+                        child:
+                            Text(gridMap[Cell.topLeft]?.text ?? Sign.none.text),
                         onPressed: () {
-                          onButtonClick(Button.topLeft);
+                          onButtonClick(Cell.topLeft);
                         },
                       ),
                       ElevatedButton(
                         child: Text(
-                            gridMap[Button.topMiddle]?.text ?? Sign.none.text),
+                            gridMap[Cell.topMiddle]?.text ?? Sign.none.text),
                         onPressed: () {
-                          onButtonClick(Button.topMiddle);
+                          onButtonClick(Cell.topMiddle);
                         },
                       ),
                       ElevatedButton(
                         child: Text(
-                            gridMap[Button.topRight]?.text ?? Sign.none.text),
+                            gridMap[Cell.topRight]?.text ?? Sign.none.text),
                         onPressed: () {
-                          onButtonClick(Button.topRight);
+                          onButtonClick(Cell.topRight);
                         },
                       ),
                     ]),
@@ -79,23 +81,23 @@ class GameState extends State<GameScreen> {
                     children: <Widget>[
                       ElevatedButton(
                         child: Text(
-                            gridMap[Button.middleLeft]?.text ?? Sign.none.text),
+                            gridMap[Cell.middleLeft]?.text ?? Sign.none.text),
                         onPressed: () {
-                          onButtonClick(Button.middleLeft);
+                          onButtonClick(Cell.middleLeft);
                         },
                       ),
                       ElevatedButton(
-                        child: Text(gridMap[Button.middleMiddle]?.text ??
-                            Sign.none.text),
+                        child: Text(
+                            gridMap[Cell.middleMiddle]?.text ?? Sign.none.text),
                         onPressed: () {
-                          onButtonClick(Button.middleMiddle);
+                          onButtonClick(Cell.middleMiddle);
                         },
                       ),
                       ElevatedButton(
-                        child: Text(gridMap[Button.middleRight]?.text ??
-                            Sign.none.text),
+                        child: Text(
+                            gridMap[Cell.middleRight]?.text ?? Sign.none.text),
                         onPressed: () {
-                          onButtonClick(Button.middleRight);
+                          onButtonClick(Cell.middleRight);
                         },
                       ),
                     ]),
@@ -104,23 +106,23 @@ class GameState extends State<GameScreen> {
                     children: <Widget>[
                       ElevatedButton(
                         child: Text(
-                            gridMap[Button.bottomLeft]?.text ?? Sign.none.text),
+                            gridMap[Cell.bottomLeft]?.text ?? Sign.none.text),
                         onPressed: () {
-                          onButtonClick(Button.bottomLeft);
+                          onButtonClick(Cell.bottomLeft);
                         },
                       ),
                       ElevatedButton(
-                        child: Text(gridMap[Button.bottomMiddle]?.text ??
-                            Sign.none.text),
+                        child: Text(
+                            gridMap[Cell.bottomMiddle]?.text ?? Sign.none.text),
                         onPressed: () {
-                          onButtonClick(Button.bottomMiddle);
+                          onButtonClick(Cell.bottomMiddle);
                         },
                       ),
                       ElevatedButton(
-                        child: Text(gridMap[Button.bottomRight]?.text ??
-                            Sign.none.text),
+                        child: Text(
+                            gridMap[Cell.bottomRight]?.text ?? Sign.none.text),
                         onPressed: () {
-                          onButtonClick(Button.bottomRight);
+                          onButtonClick(Cell.bottomRight);
                         },
                       ),
                     ]),
@@ -141,61 +143,64 @@ class GameState extends State<GameScreen> {
     );
   }
 
-  void onButtonClick(Button button) {
+  void onButtonClick(Cell cell) {
     if (gameStatus is Win) return;
-    if (gridMap[button] != Sign.none) return;
+    if (gridMap[cell] != Sign.none) return;
 
     if (player1.hasTurn) {
       setState(() {
         player1.hasTurn = false;
         player2.hasTurn = true;
         title = "Player 2 turn: 0";
-        gridMap[button] = player1.sign;
+        gridMap[cell] = player1.sign;
       });
     } else {
       setState(() {
         player1.hasTurn = true;
         player2.hasTurn = false;
         title = "Player 1 turn: X";
-        gridMap[button] = player2.sign;
+        gridMap[cell] = player2.sign;
       });
     }
 
     setupGameStatus(getGameStatus(gridMap));
   }
 
-  Button getAiEasyMove() {
-    return Button.topLeft;
+  Cell getAiEasyMove() {
+    List<Cell> emptyCells =
+        gridMap.keys.where((cell) => gridMap[cell] == Sign.none).toList();
+    final random = Random();
+    return emptyCells[random.nextInt(emptyCells.length)];
   }
 
-  Button getAiEasyHard() {
-    return Button.topLeft;
+  Cell getAiEasyHard() {
+    return Cell.topLeft;
   }
 
-  GameStatus getGameStatus(Map<Button, Sign> map) {
-    bool hasFirstRow = areEqual(
-        map[Button.topLeft], map[Button.topMiddle], map[Button.topRight]);
+  GameStatus getGameStatus(Map<Cell, Sign> map) {
+    bool hasFirstRow =
+        areEqual(map[Cell.topLeft], map[Cell.topMiddle], map[Cell.topRight]);
 
-    bool hasSecondRow = areEqual(map[Button.middleLeft],
-        map[Button.middleMiddle], map[Button.middleRight]);
+    bool hasSecondRow = areEqual(
+        map[Cell.middleLeft], map[Cell.middleMiddle], map[Cell.middleRight]);
 
-    bool hasThirdRow = areEqual(map[Button.bottomLeft],
-        map[Button.bottomMiddle], map[Button.bottomRight]);
+    bool hasThirdRow = areEqual(
+        map[Cell.bottomLeft], map[Cell.bottomMiddle], map[Cell.bottomRight]);
 
-    bool hasFirstColumn = areEqual(
-        map[Button.topLeft], map[Button.middleLeft], map[Button.bottomLeft]);
+    bool hasFirstColumn =
+        areEqual(map[Cell.topLeft], map[Cell.middleLeft], map[Cell.bottomLeft]);
 
-    bool hasSecondColumn = areEqual(map[Button.topMiddle],
-        map[Button.middleMiddle], map[Button.bottomMiddle]);
+    bool hasSecondColumn = areEqual(
+        map[Cell.topMiddle], map[Cell.middleMiddle], map[Cell.bottomMiddle]);
 
     bool hasThirdColumn = areEqual(
-        map[Button.topRight], map[Button.middleRight], map[Button.bottomRight]);
+        map[Cell.topRight], map[Cell.middleRight], map[Cell.bottomRight]);
 
     bool hasMainDiagonal = areEqual(
-        map[Button.topLeft], map[Button.middleMiddle], map[Button.bottomRight]);
+        map[Cell.topLeft], map[Cell.middleMiddle], map[Cell.bottomRight]);
 
     bool hasSecondaryDiagonal = areEqual(
-        map[Button.topRight], map[Button.middleMiddle], map[Button.bottomLeft]);
+        map[Cell.topRight], map[Cell.middleMiddle], map[Cell.bottomLeft]);
 
     bool hasUnmarkedCells =
         map.values.where((sign) => sign == Sign.none).isNotEmpty;
@@ -203,11 +208,11 @@ class GameState extends State<GameScreen> {
     Sign winningSign = Sign.none;
 
     if (hasFirstRow || hasFirstColumn || hasMainDiagonal) {
-      winningSign = map[Button.topLeft] ?? Sign.none;
+      winningSign = map[Cell.topLeft] ?? Sign.none;
     } else if (hasSecondRow || hasSecondColumn || hasSecondaryDiagonal) {
-      winningSign = map[Button.middleMiddle] ?? Sign.none;
+      winningSign = map[Cell.middleMiddle] ?? Sign.none;
     } else if (hasThirdRow || hasThirdColumn) {
-      winningSign = map[Button.bottomRight] ?? Sign.none;
+      winningSign = map[Cell.bottomRight] ?? Sign.none;
     }
 
     if (winningSign != Sign.none) {
@@ -275,15 +280,15 @@ class GameState extends State<GameScreen> {
   void setupGridMap() {
     setState(() {
       gridMap = {
-        Button.topLeft: Sign.none,
-        Button.topMiddle: Sign.none,
-        Button.topRight: Sign.none,
-        Button.middleLeft: Sign.none,
-        Button.middleMiddle: Sign.none,
-        Button.middleRight: Sign.none,
-        Button.bottomLeft: Sign.none,
-        Button.bottomMiddle: Sign.none,
-        Button.bottomRight: Sign.none
+        Cell.topLeft: Sign.none,
+        Cell.topMiddle: Sign.none,
+        Cell.topRight: Sign.none,
+        Cell.middleLeft: Sign.none,
+        Cell.middleMiddle: Sign.none,
+        Cell.middleRight: Sign.none,
+        Cell.bottomLeft: Sign.none,
+        Cell.bottomMiddle: Sign.none,
+        Cell.bottomRight: Sign.none
       };
     });
   }

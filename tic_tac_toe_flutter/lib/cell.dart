@@ -1,4 +1,4 @@
-enum Button {
+enum Cell {
   topLeft,
   topMiddle,
   topRight,
