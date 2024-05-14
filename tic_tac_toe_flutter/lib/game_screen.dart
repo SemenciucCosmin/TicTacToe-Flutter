@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:tic_tac_toe_flutter/game_status.dart';
+import 'package:tic_tac_toe_flutter/grid.dart';
 import 'package:tic_tac_toe_flutter/player.dart';
 import 'package:tic_tac_toe_flutter/player_type.dart';
 import 'package:tic_tac_toe_flutter/sign.dart';
@@ -22,15 +23,14 @@ class GameScreen extends StatefulWidget {
 class GameState extends State<GameScreen> {
   late Player player1;
   late Player player2;
+  Grid grid = Grid();
   GameStatus gameStatus = Ongoing();
   String title = "";
-  Map<Cell, Sign> gridMap = {};
 
   @override
   void initState() {
     super.initState();
     setupPlayers();
-    setupGridMap();
     setupGameStatus(gameStatus);
   }
 
@@ -57,24 +57,21 @@ class GameState extends State<GameScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       ElevatedButton(
-                        child:
-                            Text(gridMap[Cell.topLeft]?.text ?? Sign.none.text),
+                        child: Text(grid.getCellSignText(Cell.topLeft)),
                         onPressed: () {
                           onButtonClick(Cell.topLeft);
                         },
                       ),
                       const SizedBox(width: 16),
                       ElevatedButton(
-                        child: Text(
-                            gridMap[Cell.topMiddle]?.text ?? Sign.none.text),
+                        child: Text(grid.getCellSignText(Cell.topMiddle)),
                         onPressed: () {
                           onButtonClick(Cell.topMiddle);
                         },
                       ),
                       const SizedBox(width: 16),
                       ElevatedButton(
-                        child: Text(
-                            gridMap[Cell.topRight]?.text ?? Sign.none.text),
+                        child: Text(grid.getCellSignText(Cell.topRight)),
                         onPressed: () {
                           onButtonClick(Cell.topRight);
                         },
@@ -85,24 +82,21 @@ class GameState extends State<GameScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       ElevatedButton(
-                        child: Text(
-                            gridMap[Cell.middleLeft]?.text ?? Sign.none.text),
+                        child: Text(grid.getCellSignText(Cell.middleLeft)),
                         onPressed: () {
                           onButtonClick(Cell.middleLeft);
                         },
                       ),
                       const SizedBox(width: 16),
                       ElevatedButton(
-                        child: Text(
-                            gridMap[Cell.middleMiddle]?.text ?? Sign.none.text),
+                        child: Text(grid.getCellSignText(Cell.middleMiddle)),
                         onPressed: () {
                           onButtonClick(Cell.middleMiddle);
                         },
                       ),
                       const SizedBox(width: 16),
                       ElevatedButton(
-                        child: Text(
-                            gridMap[Cell.middleRight]?.text ?? Sign.none.text),
+                        child: Text(grid.getCellSignText(Cell.middleRight)),
                         onPressed: () {
                           onButtonClick(Cell.middleRight);
                         },
@@ -113,24 +107,21 @@ class GameState extends State<GameScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       ElevatedButton(
-                        child: Text(
-                            gridMap[Cell.bottomLeft]?.text ?? Sign.none.text),
+                        child: Text(grid.getCellSignText(Cell.bottomLeft)),
                         onPressed: () {
                           onButtonClick(Cell.bottomLeft);
                         },
                       ),
                       const SizedBox(width: 16),
                       ElevatedButton(
-                        child: Text(
-                            gridMap[Cell.bottomMiddle]?.text ?? Sign.none.text),
+                        child: Text(grid.getCellSignText(Cell.bottomMiddle)),
                         onPressed: () {
                           onButtonClick(Cell.bottomMiddle);
                         },
                       ),
                       const SizedBox(width: 16),
                       ElevatedButton(
-                        child: Text(
-                            gridMap[Cell.bottomRight]?.text ?? Sign.none.text),
+                        child: Text(grid.getCellSignText(Cell.bottomRight)),
                         onPressed: () {
                           onButtonClick(Cell.bottomRight);
                         },
@@ -141,7 +132,8 @@ class GameState extends State<GameScreen> {
             const SizedBox(height: 16),
             Visibility(
               visible: widget.gameMode != GameMode.twoPlayers &&
-                  player2.hasTurn && gameStatus is Ongoing, // bool
+                  player2.hasTurn &&
+                  gameStatus is Ongoing, // bool
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -179,35 +171,35 @@ class GameState extends State<GameScreen> {
 
   void onButtonClick(Cell cell) {
     if (gameStatus is! Ongoing) return;
-    if (gridMap[cell] != Sign.none) return;
+    if (!grid.isCellEmpty(cell)) return;
 
     switch (widget.gameMode) {
       case GameMode.twoPlayers:
         if (player1.hasTurn) {
-          markCell(cell, player1.sign);
+          grid.markCell(cell, player1.sign);
         } else {
-          markCell(cell, player2.sign);
+          grid.markCell(cell, player2.sign);
         }
         changePlayersTurns();
-        setupGameStatus(getGameStatus(gridMap));
+        setupGameStatus(grid.getGameStatus());
         break;
 
       case GameMode.onePlayerWithAiEasy:
         // Make sure user does not click a cell while the AI is computing a move
         if (player1.hasTurn) {
-          markCell(cell, player1.sign);
+          grid.markCell(cell, player1.sign);
           changePlayersTurns();
-          setupGameStatus(getGameStatus(gridMap));
+          setupGameStatus(grid.getGameStatus());
 
           // Prevent th AI from marking its move if the user has already won
-          if (getGameStatus(gridMap) is! Ongoing) return;
+          if (grid.getGameStatus() is! Ongoing) return;
 
           // Mark the AI-easy move after a two seconds delay to
           // simulate computing algorithm
           Future.delayed(const Duration(seconds: 2), () {
-            markCell(getAiEasyMove(), player2.sign);
+            grid.markCell(getAiEasyMove(), player2.sign);
             changePlayersTurns();
-            setupGameStatus(getGameStatus(gridMap));
+            setupGameStatus(grid.getGameStatus());
           });
         }
         break;
@@ -215,17 +207,17 @@ class GameState extends State<GameScreen> {
       case GameMode.onePlayerWithAiHard:
         // Make sure user does not click a cell while the AI is computing a move
         if (player1.hasTurn) {
-          markCell(cell, player1.sign);
+          grid.markCell(cell, player1.sign);
           changePlayersTurns();
-          setupGameStatus(getGameStatus(gridMap));
+          setupGameStatus(grid.getGameStatus());
 
           // Prevent th AI from marking its move if the user has already won
-          if (getGameStatus(gridMap) is! Ongoing) return;
+          if (grid.getGameStatus() is! Ongoing) return;
 
           Future.delayed(const Duration(seconds: 2), () {
-            markCell(getAiHardMove(), player2.sign);
+            grid.markCell(getAiHardMove(), player2.sign);
             changePlayersTurns();
-            setupGameStatus(getGameStatus(gridMap));
+            setupGameStatus(grid.getGameStatus());
           });
         }
         break;
@@ -233,61 +225,13 @@ class GameState extends State<GameScreen> {
   }
 
   Cell getAiEasyMove() {
-    List<Cell> emptyCells =
-        gridMap.keys.where((cell) => gridMap[cell] == Sign.none).toList();
+    List<Cell> emptyCells = grid.getEmptyCells();
     final random = Random();
     return emptyCells[random.nextInt(emptyCells.length)];
   }
 
   Cell getAiHardMove() {
     return Cell.topLeft;
-  }
-
-  GameStatus getGameStatus(Map<Cell, Sign> map) {
-    bool hasFirstRow =
-        areEqual(map[Cell.topLeft], map[Cell.topMiddle], map[Cell.topRight]);
-
-    bool hasSecondRow = areEqual(
-        map[Cell.middleLeft], map[Cell.middleMiddle], map[Cell.middleRight]);
-
-    bool hasThirdRow = areEqual(
-        map[Cell.bottomLeft], map[Cell.bottomMiddle], map[Cell.bottomRight]);
-
-    bool hasFirstColumn =
-        areEqual(map[Cell.topLeft], map[Cell.middleLeft], map[Cell.bottomLeft]);
-
-    bool hasSecondColumn = areEqual(
-        map[Cell.topMiddle], map[Cell.middleMiddle], map[Cell.bottomMiddle]);
-
-    bool hasThirdColumn = areEqual(
-        map[Cell.topRight], map[Cell.middleRight], map[Cell.bottomRight]);
-
-    bool hasMainDiagonal = areEqual(
-        map[Cell.topLeft], map[Cell.middleMiddle], map[Cell.bottomRight]);
-
-    bool hasSecondaryDiagonal = areEqual(
-        map[Cell.topRight], map[Cell.middleMiddle], map[Cell.bottomLeft]);
-
-    bool hasUnmarkedCells =
-        map.values.where((sign) => sign == Sign.none).isNotEmpty;
-
-    Sign winningSign = Sign.none;
-
-    if (hasFirstRow || hasFirstColumn || hasMainDiagonal) {
-      winningSign = map[Cell.topLeft] ?? Sign.none;
-    } else if (hasSecondRow || hasSecondColumn || hasSecondaryDiagonal) {
-      winningSign = map[Cell.middleMiddle] ?? Sign.none;
-    } else if (hasThirdRow || hasThirdColumn) {
-      winningSign = map[Cell.bottomRight] ?? Sign.none;
-    }
-
-    if (winningSign != Sign.none) {
-      return Win(winningSign);
-    } else if (!hasUnmarkedCells) {
-      return Draw();
-    } else {
-      return Ongoing();
-    }
   }
 
   void changePlayersTurns() {
@@ -297,15 +241,9 @@ class GameState extends State<GameScreen> {
     });
   }
 
-  void markCell(Cell cell, Sign sign) {
-    setState(() {
-      gridMap[cell] = sign;
-    });
-  }
-
   void rematch() {
     setupPlayers();
-    setupGridMap();
+    grid.reset();
     setState(() {
       gameStatus = Ongoing();
     });
@@ -354,25 +292,5 @@ class GameState extends State<GameScreen> {
           break;
       }
     });
-  }
-
-  void setupGridMap() {
-    setState(() {
-      gridMap = {
-        Cell.topLeft: Sign.none,
-        Cell.topMiddle: Sign.none,
-        Cell.topRight: Sign.none,
-        Cell.middleLeft: Sign.none,
-        Cell.middleMiddle: Sign.none,
-        Cell.middleRight: Sign.none,
-        Cell.bottomLeft: Sign.none,
-        Cell.bottomMiddle: Sign.none,
-        Cell.bottomRight: Sign.none
-      };
-    });
-  }
-
-  bool areEqual(Sign? value1, Sign? value2, Sign? value3) {
-    return value1 != Sign.none && value1 == value2 && value2 == value3;
   }
 }
