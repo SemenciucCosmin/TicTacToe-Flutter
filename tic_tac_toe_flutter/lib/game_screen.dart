@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:tic_tac_toe_flutter/game_status.dart';
 import 'package:tic_tac_toe_flutter/grid.dart';
 import 'package:tic_tac_toe_flutter/player.dart';
-import 'package:tic_tac_toe_flutter/player_type.dart';
 import 'package:tic_tac_toe_flutter/sign.dart';
 
 import 'cell.dart';
@@ -21,8 +20,8 @@ class GameScreen extends StatefulWidget {
 }
 
 class GameState extends State<GameScreen> {
-  late Player player1;
-  late Player player2;
+  Player player1 = Player(hasTurn: true, sign: Sign.x);
+  Player player2 = Player(sign: Sign.o);
   Grid grid = Grid();
   GameStatus gameStatus = Ongoing();
   String title = "";
@@ -30,7 +29,6 @@ class GameState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    setupPlayers();
     setupGameStatus(gameStatus);
   }
 
@@ -175,53 +173,47 @@ class GameState extends State<GameScreen> {
 
     switch (widget.gameMode) {
       case GameMode.twoPlayers:
-        if (player1.hasTurn) {
-          grid.markCell(cell, player1.sign);
-        } else {
-          grid.markCell(cell, player2.sign);
-        }
-        changePlayersTurns();
-        setupGameStatus(grid.getGameStatus());
+        makePlayerMove(cell);
         break;
 
-      case GameMode.onePlayerWithAiEasy:
+      default:
         // Make sure user does not click a cell while the AI is computing a move
-        if (player1.hasTurn) {
-          grid.markCell(cell, player1.sign);
-          changePlayersTurns();
-          setupGameStatus(grid.getGameStatus());
+        if (player2.hasTurn) return;
 
-          // Prevent th AI from marking its move if the user has already won
-          if (grid.getGameStatus() is! Ongoing) return;
+        makePlayerMove(cell);
 
-          // Mark the AI-easy move after a two seconds delay to
-          // simulate computing algorithm
-          Future.delayed(const Duration(seconds: 2), () {
-            grid.markCell(getAiEasyMove(), player2.sign);
-            changePlayersTurns();
-            setupGameStatus(grid.getGameStatus());
-          });
-        }
-        break;
+        // Prevent th AI from marking its move if the user has already won
+        if (grid.getGameStatus() is! Ongoing) return;
 
-      case GameMode.onePlayerWithAiHard:
-        // Make sure user does not click a cell while the AI is computing a move
-        if (player1.hasTurn) {
-          grid.markCell(cell, player1.sign);
-          changePlayersTurns();
-          setupGameStatus(grid.getGameStatus());
-
-          // Prevent th AI from marking its move if the user has already won
-          if (grid.getGameStatus() is! Ongoing) return;
-
-          Future.delayed(const Duration(seconds: 2), () {
-            grid.markCell(getAiHardMove(), player2.sign);
-            changePlayersTurns();
-            setupGameStatus(grid.getGameStatus());
-          });
-        }
+        // Mark the AI-easy move after a two seconds delay to
+        // simulate computing algorithm
+        Future.delayed(const Duration(seconds: 2), () {
+          makeAiMove();
+        });
         break;
     }
+  }
+
+  void makePlayerMove(Cell cell) {
+    if (player1.hasTurn) {
+      grid.markCell(cell, player1.sign);
+    } else {
+      grid.markCell(cell, player2.sign);
+    }
+
+    changePlayersTurns();
+    setupGameStatus(grid.getGameStatus());
+  }
+
+  void makeAiMove() {
+    if (widget.gameMode == GameMode.onePlayerWithAiEasy) {
+      grid.markCell(getAiEasyMove(), player2.sign);
+    } else {
+      grid.markCell(getAiHardMove(), player2.sign);
+    }
+
+    changePlayersTurns();
+    setupGameStatus(grid.getGameStatus());
   }
 
   Cell getAiEasyMove() {
@@ -242,10 +234,11 @@ class GameState extends State<GameScreen> {
   }
 
   void rematch() {
-    setupPlayers();
     grid.reset();
     setState(() {
       gameStatus = Ongoing();
+      player1 = Player(hasTurn: true, sign: Sign.x);
+      player2 = Player(sign: Sign.o);
     });
   }
 
@@ -270,25 +263,6 @@ class GameState extends State<GameScreen> {
           } else {
             title = "Player 2 wins!";
           }
-          break;
-      }
-    });
-  }
-
-  void setupPlayers() {
-    setState(() {
-      switch (widget.gameMode) {
-        case GameMode.twoPlayers:
-          player1 = Player(hasTurn: true, sign: Sign.x);
-          player2 = Player(sign: Sign.o);
-          break;
-        case GameMode.onePlayerWithAiEasy:
-          player1 = Player(hasTurn: true, sign: Sign.x);
-          player2 = Player(type: PlayerType.aiEasy, sign: Sign.o);
-          break;
-        case GameMode.onePlayerWithAiHard:
-          player1 = Player(hasTurn: true, sign: Sign.x);
-          player2 = Player(type: PlayerType.aiHard, sign: Sign.o);
           break;
       }
     });
