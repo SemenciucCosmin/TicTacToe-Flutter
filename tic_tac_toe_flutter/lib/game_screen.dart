@@ -296,15 +296,15 @@ class GameState extends State<GameScreen> {
 
   int getPoints(Grid grid, Player player, int iterationIndex) {
     int points = neutralPoints;
-    GameStatus initialStatus = grid.getGameStatus();
+    GameStatus gameStatus = grid.getGameStatus();
 
-    switch (initialStatus) {
+    switch (gameStatus) {
       case Draw():
         points = drawPoints;
         break;
 
       case Win():
-        if (initialStatus.playerSign == player2.sign) {
+        if (gameStatus.playerSign == player2.sign) {
           points = winPoints;
         }
         break;
