@@ -96,4 +96,14 @@ class Grid {
   bool _areEqual(Sign? value1, Sign? value2, Sign? value3) {
     return value1 != Sign.none && value1 == value2 && value2 == value3;
   }
+
+  Grid getCopy() {
+    Grid copy = Grid();
+
+    for (var element in map.entries) {
+      copy.markCell(element.key, element.value);
+    }
+
+    return copy;
+  }
 }

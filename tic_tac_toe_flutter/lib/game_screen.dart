@@ -10,6 +10,12 @@ import 'package:tic_tac_toe_flutter/sign.dart';
 import 'cell.dart';
 import 'game_mode.dart';
 
+const int lastIteration = 0;
+const int winPoints = 100;
+const int drawPoints = 25;
+const int neutralPoints = 0;
+const int aiIterations = 5;
+
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key, required this.gameMode});
 
@@ -190,6 +196,7 @@ class GameState extends State<GameScreen> {
         Future.delayed(const Duration(seconds: 2), () {
           makeAiMove();
         });
+
         break;
     }
   }
@@ -223,7 +230,26 @@ class GameState extends State<GameScreen> {
   }
 
   Cell getAiHardMove() {
-    return Cell.topLeft;
+    List<Cell> emptyCells = grid.getEmptyCells();
+    Map<Cell, int> cellPoints = {};
+
+    for (var cell in emptyCells) {
+      Grid newGrid = grid.getCopy();
+      newGrid.markCell(cell, player2.sign);
+      cellPoints[cell] = getPoints(newGrid, player1, aiIterations);
+    }
+
+    int maxPoints = neutralPoints;
+    Cell selectedCell = cellPoints.keys.first;
+
+    cellPoints.forEach((cell, points) {
+      if (points > maxPoints) {
+        maxPoints = points;
+        selectedCell = cell;
+      }
+    });
+
+    return selectedCell;
   }
 
   void changePlayersTurns() {
@@ -266,5 +292,41 @@ class GameState extends State<GameScreen> {
           break;
       }
     });
+  }
+
+  int getPoints(Grid grid, Player player, int iterationIndex) {
+    int points = neutralPoints;
+    GameStatus initialStatus = grid.getGameStatus();
+
+    switch (initialStatus) {
+      case Draw():
+        points = drawPoints;
+        break;
+
+      case Win():
+        if (initialStatus.playerSign == player2.sign) {
+          points = winPoints;
+        }
+        break;
+      case Ongoing():
+        if (iterationIndex == lastIteration) break;
+        List<Cell> emptyCells = grid.getEmptyCells();
+        Map<Cell, int> cellPoints = {};
+
+        for (var cell in emptyCells) {
+          Grid newGrid = grid.getCopy();
+          newGrid.markCell(cell, player.sign);
+          if (player.sign == player1.sign) {
+            cellPoints[cell] = getPoints(newGrid, player2, iterationIndex - 1);
+          } else {
+            cellPoints[cell] = getPoints(newGrid, player1, iterationIndex - 1);
+          }
+        }
+
+        points = cellPoints.values.reduce((sum, element) => sum + element);
+        break;
+    }
+
+    return points;
   }
 }
