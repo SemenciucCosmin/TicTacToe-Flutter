@@ -3,9 +3,9 @@ It serves as an educational project to explore Flutter and implement basic AI al
 The app offers three game modes for different levels of challenge and interaction. <br />
 
 ## A Features
-• Two Players Mode: Classic mode for two human players. <br />
-• User vs. Easy AI: The AI makes random moves, providing a straightforward opponent. <br />
-• User vs. Advanced AI: The AI uses a recursive algorithm to evaluate all possible game paths and choose the optimal move. <br />
+**• Two Players Mode:** Classic mode for two human players. <br />
+**• User vs. Easy AI:** The AI makes random moves, providing a straightforward opponent. <br />
+**• User vs. Advanced AI:** The AI uses a recursive algorithm to evaluate all possible game paths and choose the optimal move. <br />
 
 ## A Technical Highlights 
 **• Flutter Framework:** Built using Flutter for cross-platform compatibility. <br />
